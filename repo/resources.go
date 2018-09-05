@@ -3,6 +3,8 @@ package repo
 import (
 	"chainstack/infra"
 	"chainstack/models"
+
+	"github.com/jinzhu/gorm"
 )
 
 type resource struct {
@@ -17,8 +19,21 @@ func init() {
 
 type IResource interface {
 	GetByUserId(userId, nextId, limit int) ([]models.Resource, error)
+	GetById(id int) (*models.Resource, error)
 	Create(*models.Resource) error
 	Delete(*models.Resource) error
+}
+
+func (r resource) GetById(id int) (*models.Resource, error) {
+	var resource models.Resource
+	err := infra.PostgreSql.Model(models.Resource{}).
+		Where("id = ?", id).
+		Find(&resource).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return &resource, err
 }
 
 func (r resource) Create(resource *models.Resource) error {
@@ -31,7 +46,7 @@ func (r resource) Delete(resource *models.Resource) error {
 
 func (r resource) GetByUserId(userId, nextId, limit int) (resources []models.Resource, err error) {
 	query := infra.PostgreSql.Model(models.Resource{}).
-		Where("created_by= ?", userId)
+		Where("created_by = ?", userId)
 
 	if nextId > 0 {
 		query = query.Where("id < ?", nextId)
