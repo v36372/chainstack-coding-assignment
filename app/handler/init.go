@@ -45,13 +45,20 @@ func InitEngine(conf *config.Config) *gin.Engine {
 		POST(indexGroup, "/login", userHandler.Login)
 	}
 
-	userGroup := r.Group("/users/:idOrMe")
+	userGroup := r.Group("/users")
 	userGroup.Use(authMiddleware.RequireLogin())
 	userGroup.Use(authMiddleware.Interception())
 	{
-		GET(userGroup, "/resources", userResourceHandler.ListResources)
-		POST(userGroup, "/resources", userResourceHandler.CreateResource)
-		DELETE(userGroup, "/resources/:uid", userResourceHandler.DeleteResource)
+		GET(userGroup, "/:id/resources", userResourceHandler.ListResources)
+		GET(userGroup, "", userHandler.ListUsers)
+	}
+
+	resourceGroup := r.Group("/resources")
+	resourceGroup.Use(authMiddleware.RequireLogin())
+	resourceGroup.Use(authMiddleware.Interception())
+	{
+		DELETE(resourceGroup, "/:uid", userResourceHandler.DeleteResource)
+		POST(resourceGroup, "/resources", userResourceHandler.CreateResource)
 	}
 
 	return r
