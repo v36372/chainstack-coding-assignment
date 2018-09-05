@@ -3,8 +3,12 @@ package handler
 import (
 	"chainstack/app/entity"
 	"chainstack/app/form"
+	"chainstack/app/params"
+	"chainstack/app/view"
 	"chainstack/middleware"
 	"chainstack/utilities/uer"
+	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,4 +41,49 @@ func (h userHandler) Login(c *gin.Context) {
 	}
 
 	c.Status(200)
+}
+
+func (h userHandler) ListUsers(c *gin.Context) {
+	currentUser := middleware.Auth.GetCurrentUser(c)
+	if currentUser == nil {
+		uer.HandleUnauthorized(c)
+		return
+	}
+
+	if currentUser.IsAdmin == false {
+		uer.HandlePermissionDenied(c)
+		return
+	}
+
+	nextId, limit := params.GetNextIdAndLimitParam(c)
+	users, err := h.user.ListUsers(nextId, limit)
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	userViews, err := view.NewUsers(users)
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	var pagination *view.Pagination
+	if len(users) == limit {
+		url := c.Request.RequestURI
+		if strings.Index(url, "/") == 0 {
+			url = url[1:]
+		}
+		version := c.Param("version")
+		// NextUrl
+		nextUrl := fmt.Sprintf("%s?%s=%d",
+			getPureRequestURI(url, version),
+			params.ParamUrlNextId,
+			users[len(users)-1].Id)
+		pagination = &view.Pagination{
+			NextUrl: nextUrl,
+		}
+	}
+	view.ResponseOKWithPagination(c, userViews, pagination)
+
 }
