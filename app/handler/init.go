@@ -27,11 +27,10 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	authMiddleware := middleware.NewAuthMiddleware(secCookie, middleware.Auth.GetLoggedInUser)
 	middleware.InitAuth(authMiddleware.GetCurrentUser)
 
-	r.Use(authMiddleware.Interception())
-
 	// ----------------------   INIT HANDLER
 	userHandler := userHandler{
 		user:      entity.NewUser(repo.User),
+		resource:  entity.NewResource(repo.Resource),
 		secCookie: secCookie,
 	}
 
@@ -40,6 +39,15 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	indexGroup := r.Group("/")
 	{
 		POST(indexGroup, "/login", userHandler.Login)
+	}
+
+	userGroup := r.Group("/users/:idOrMe")
+	userGroup.Use(authMiddleware.RequireLogin())
+	userGroup.Use(authMiddleware.Interception())
+	{
+		GET(userGroup, "/resources", userHandler.ListResources)
+		POST(userGroup, "/resources", userHandler.CreateResource)
+		DELETE(userGroup, "/resources/:uid", userHandler.DeleteResource)
 	}
 
 	return r
