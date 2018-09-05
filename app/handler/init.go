@@ -25,7 +25,9 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	// ----------------------   INIT ROUTE
 
 	indexGroup := r.Group("/")
-	POST(indexGroup, "/login", userHandler.Login)
+	{
+		POST(indexGroup, "/login", userHandler.Login)
+	}
 
 	return r
 }

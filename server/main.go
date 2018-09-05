@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chainstack/app/handler"
 	"chainstack/cmd"
 	"chainstack/config"
 	"chainstack/infra"
@@ -16,9 +17,12 @@ func main() {
 
 	setupInfra(conf)
 	defer infra.ClosePostgreSql()
+
+	ginEngine := handler.InitEngine(&conf)
 	address := fmt.Sprintf("%s:%d", conf.App.Host, conf.App.Port)
 	server := http.Server{
-		Addr: address,
+		Addr:    address,
+		Handler: ginEngine,
 	}
 
 	if err := gracehttp.Serve(&server); err != nil {
