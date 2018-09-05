@@ -1,6 +1,10 @@
 package params
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
 
 const (
 	paramUrlLimit    = "limit"
@@ -19,4 +23,15 @@ func parseUrlParamToInt(value string, defaultVal int) int {
 	}
 
 	return res
+}
+
+func GetNextIdAndLimitParam(c *gin.Context) (nextId, limit int) {
+	nextId = parseUrlParamToInt(c.Query(ParamUrlNextId), 0)
+
+	limit = parseUrlParamToInt(c.Query(paramUrlLimit), defaultLimit)
+	if limit <= 0 || limit > maxLimit {
+		limit = defaultLimit
+	}
+
+	return
 }
