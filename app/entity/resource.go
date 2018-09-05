@@ -12,12 +12,27 @@ type resourceEntity struct {
 
 type Resource interface {
 	GetByUserId(userId, nextId, limit int) ([]models.Resource, error)
+	Create(content string, createdBy int) error
 }
 
 func NewResource(resourceRepo repo.IResource) Resource {
 	return &resourceEntity{
 		resourceRepo: resourceRepo,
 	}
+}
+
+func (r resourceEntity) Create(content string, createdBy int) error {
+	resource := &models.Resource{
+		Content:   content,
+		CreatedBy: createdBy,
+	}
+	err := r.resourceRepo.Create(resource)
+	if err != nil {
+		err = uer.InternalError(err)
+		return err
+	}
+
+	return err
 }
 
 func (r resourceEntity) GetByUserId(userId, nextId, limit int) (resources []models.Resource, err error) {
