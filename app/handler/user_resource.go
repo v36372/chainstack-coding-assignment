@@ -40,11 +40,11 @@ func (h userResourceHandler) ListResources(c *gin.Context) {
 	}
 
 	if userId != currentUser.Id && currentUser.IsAdmin == false {
-		uer.HandlePermissionDenied(c)
-		return
+		// uer.HandlePermissionDenied(c)
+		userId = currentUser.Id
 	}
 
-	nextId, limit := params.GetNextIdGetResourcesParam(c)
+	nextId, limit := params.GetNextIdAndLimitParam(c)
 
 	resources, err := h.resource.GetByUserId(userId, nextId, limit)
 	if err != nil {
