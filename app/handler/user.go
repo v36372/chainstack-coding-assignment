@@ -43,6 +43,40 @@ func (h userHandler) Login(c *gin.Context) {
 	c.Status(200)
 }
 
+func (h userHandler) DeleteUser(c *gin.Context) {
+	currentUser := middleware.Auth.GetCurrentUser(c)
+	if currentUser == nil {
+		uer.HandleUnauthorized(c)
+		return
+	}
+
+	if currentUser.IsAdmin == false {
+		uer.HandlePermissionDenied(c)
+		return
+	}
+
+	userId := params.GetUserIdUrlParam(c)
+	if userId == 0 {
+		err := uer.NotFoundError(errors.New("User not found"))
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	if userId == currentUser.Id {
+		err := uer.BadRequestError(errors.New("You can not delete yourself"))
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	err := h.user.Delete(userId, currentUser.Id)
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	c.Status(200)
+}
+
 func (h userHandler) CreateUser(c *gin.Context) {
 	currentUser := middleware.Auth.GetCurrentUser(c)
 	if currentUser == nil {
