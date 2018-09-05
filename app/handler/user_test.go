@@ -47,15 +47,23 @@ func getLoginPayload(email, password string) string {
 }
 
 func TestLoginHandler(t *testing.T) {
-	loginPayload := getLoginPayload("tin.trng.ng@gmail.com", "test")
-	req, err := http.NewRequest("POST", "/login", strings.NewReader(loginPayload))
-	if err != nil {
-		t.Fatal(err)
+	type suite struct {
+		form       string
+		expectCode int
 	}
 
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(loginPayload)))
+	suites := [2]suite{
+		suite{
+			form:       getLoginPayload("tin.trng.ng@gmail.com", "test"),
+			expectCode: 200,
+		},
+		suite{
+			form:       getLoginPayload("tin.trng.ng@gmail.com", "wrongpassword"),
+			expectCode: 401,
+		},
+	}
 
+	// SET UP TEST ROUTER
 	r := gin.New()
 
 	mockUser := mockUser{}
@@ -64,10 +72,21 @@ func TestLoginHandler(t *testing.T) {
 	}
 	r.POST("/login", userHandler.Login)
 
-	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
+	// RUNNING TEST SUITES
+	for _, suite := range suites {
+		req, err := http.NewRequest("POST", "/login", strings.NewReader(suite.form))
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if rr.Code != http.StatusOK {
-		t.Fail()
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Add("Content-Length", strconv.Itoa(len(suite.form)))
+
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		if rr.Code != suite.expectCode {
+			t.Fail()
+		}
 	}
 }
