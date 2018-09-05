@@ -8,6 +8,7 @@ type User struct {
 	Password  string
 	Salt      string
 	IsAdmin   bool
+	CreatedBy int
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
