@@ -7,8 +7,8 @@ import (
 )
 
 type UserLogin struct {
-	Email    string `form:"email" json:"email" validator:"required"`
-	Password string `form:"password" json:"password" validator:"required"`
+	Email    string `form:"email" json:"email"`
+	Password string `form:"password" json:"password"`
 }
 
 func (inputForm *UserLogin) FromCtx(c *gin.Context) error {
