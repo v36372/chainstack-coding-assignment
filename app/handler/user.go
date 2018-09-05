@@ -7,6 +7,7 @@ import (
 	"chainstack/app/view"
 	"chainstack/middleware"
 	"chainstack/utilities/uer"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -15,7 +16,6 @@ import (
 
 type userHandler struct {
 	user      entity.User
-	resource  entity.Resource
 	secCookie *middleware.SecCookie
 }
 
@@ -36,6 +36,41 @@ func (h userHandler) Login(c *gin.Context) {
 	_, err = h.secCookie.SetAuthorizationToken("auth", user.Email, "/", c.Writer)
 	if err != nil {
 		err = uer.InternalError(err)
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	c.Status(200)
+}
+
+func (h userHandler) CreateUser(c *gin.Context) {
+	currentUser := middleware.Auth.GetCurrentUser(c)
+	if currentUser == nil {
+		uer.HandleUnauthorized(c)
+		return
+	}
+
+	if currentUser.IsAdmin == false {
+		uer.HandlePermissionDenied(c)
+		return
+	}
+
+	var userForm form.UserCreateForm
+	err := userForm.FromCtx(c)
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	user, userQuota := userForm.ToDBModel()
+	if user == nil {
+		err = uer.BadRequestError(errors.New("Invalid input"))
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	err = h.user.Create(user, userQuota, currentUser.Id)
+	if err != nil {
 		uer.HandleErrorGin(err, c)
 		return
 	}

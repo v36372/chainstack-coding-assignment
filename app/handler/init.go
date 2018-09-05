@@ -51,6 +51,7 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	{
 		GET(userGroup, "/:id/resources", userResourceHandler.ListResources)
 		GET(userGroup, "", userHandler.ListUsers)
+		POST(userGroup, "", userHandler.CreateUser)
 	}
 
 	resourceGroup := r.Group("/resources")
