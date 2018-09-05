@@ -9,3 +9,7 @@ type UserQuota struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+func (UserQuota) TableName() string {
+	return "user_quotas"
+}
