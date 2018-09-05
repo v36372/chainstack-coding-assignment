@@ -20,6 +20,7 @@ type User interface {
 	Login(username, password string) (*models.User, error)
 	ListUsers(nextId, limit int) ([]models.User, error)
 	Create(*models.User, *models.UserQuota, int) error
+	Delete(userId int, currentUserId int) error
 }
 
 func NewUser(userRepo repo.IUser) User {
@@ -35,6 +36,25 @@ func RandStringBytesRmndr(n int) string {
 
 	}
 	return string(b)
+}
+
+func (u userEntity) Delete(userId int, currentUserId int) error {
+	user, err := u.userRepo.GetById(userId)
+	if err != nil {
+		return uer.InternalError(err)
+	}
+
+	if user == nil {
+		// return nil, uer.NotFoundError(errors.New("user not found"))
+		return uer.NotFoundError(errors.New("User not found"))
+	}
+
+	err = u.userRepo.DeleteUserAndQuota(userId)
+	if err != nil {
+		return uer.InternalError(err)
+	}
+
+	return nil
 }
 
 func (u userEntity) Create(user *models.User, quota *models.UserQuota, currentUserId int) error {
