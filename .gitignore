@@ -1,0 +1,4 @@
+bin
+log
+config/config.yaml
+*.log
