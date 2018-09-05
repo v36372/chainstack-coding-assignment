@@ -81,7 +81,7 @@ func (a *authMiddleware) RequireLogin() gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(401, gin.H{
-				"ERROR_CODE": "LOGIN_REQUIRED",
+				"msg": "You need to login to see this.",
 			})
 			c.Abort()
 			return
