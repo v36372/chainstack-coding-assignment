@@ -3,6 +3,7 @@ package handler
 import (
 	"chainstack/app/entity"
 	"chainstack/config"
+	"chainstack/repo"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,7 @@ func InitEngine(conf *config.Config) *gin.Engine {
 
 	// ----------------------   INIT HANDLER
 	userHandler := userHandler{
-		user: entity.NewUser(),
+		user: entity.NewUser(repo.User),
 	}
 
 	// ----------------------   INIT ROUTE

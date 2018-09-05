@@ -9,18 +9,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type userEntity struct{}
+type userEntity struct {
+	userRepo repo.IUser
+}
 
 type User interface {
 	Login(username, password string) (*models.User, error)
 }
 
-func NewUser() User {
-	return &userEntity{}
+func NewUser(userRepo repo.IUser) User {
+	return &userEntity{
+		userRepo: userRepo,
+	}
 }
 
-func (userEntity) Login(email, password string) (*models.User, error) {
-	user, err := repo.User.GetByEmail(email)
+func (u userEntity) Login(email, password string) (*models.User, error) {
+	user, err := u.userRepo.GetByEmail(email)
 	if err != nil {
 		return nil, uer.InternalError(err)
 	}
