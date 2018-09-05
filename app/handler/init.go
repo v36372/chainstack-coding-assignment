@@ -30,6 +30,10 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	// ----------------------   INIT HANDLER
 	userHandler := userHandler{
 		user:      entity.NewUser(repo.User),
+		secCookie: secCookie,
+	}
+
+	userResourceHandler := userResourceHandler{
 		resource:  entity.NewResource(repo.Resource),
 		secCookie: secCookie,
 	}
@@ -45,9 +49,9 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	userGroup.Use(authMiddleware.RequireLogin())
 	userGroup.Use(authMiddleware.Interception())
 	{
-		GET(userGroup, "/resources", userHandler.ListResources)
-		POST(userGroup, "/resources", userHandler.CreateResource)
-		DELETE(userGroup, "/resources/:uid", userHandler.DeleteResource)
+		GET(userGroup, "/resources", userResourceHandler.ListResources)
+		POST(userGroup, "/resources", userResourceHandler.CreateResource)
+		DELETE(userGroup, "/resources/:uid", userResourceHandler.DeleteResource)
 	}
 
 	return r
