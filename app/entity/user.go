@@ -31,12 +31,12 @@ func (u userEntity) Login(email, password string) (*models.User, error) {
 
 	if user == nil {
 		// return nil, uer.NotFoundError(errors.New("user not found"))
-		return nil, uer.NotAuthorizedError(errors.New("unauthorized"))
+		return nil, uer.NotAuthorizedError(errors.New("Wrong email or password"))
 	}
 
 	// Comparing the password with the hash
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user.Salt+password)); err != nil {
-		return nil, uer.NotAuthorizedError(errors.New("unauthorized"))
+		return nil, uer.NotAuthorizedError(errors.New("Wrong email or password"))
 	}
 
 	return user, nil

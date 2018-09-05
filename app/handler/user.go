@@ -3,13 +3,15 @@ package handler
 import (
 	"chainstack/app/entity"
 	"chainstack/app/form"
+	"chainstack/middleware"
 	"chainstack/utilities/uer"
 
 	"github.com/gin-gonic/gin"
 )
 
 type userHandler struct {
-	user entity.User
+	user      entity.User
+	secCookie *middleware.SecCookie
 }
 
 func (h userHandler) Login(c *gin.Context) {
@@ -20,8 +22,15 @@ func (h userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	_, err = h.user.Login(loginForm.Email, loginForm.Password)
+	user, err := h.user.Login(loginForm.Email, loginForm.Password)
 	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	_, err = h.secCookie.SetAuthorizationToken("auth", user.Email, "/", c.Writer)
+	if err != nil {
+		err = uer.InternalError(err)
 		uer.HandleErrorGin(err, c)
 		return
 	}
