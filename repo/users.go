@@ -19,6 +19,7 @@ func init() {
 
 type IUser interface {
 	GetByEmail(email string) (*models.User, error)
+	List(nextId, limit int) ([]models.User, error)
 	Create(*models.User) error
 	Update(*models.User) error
 	Delete(*models.User) error
@@ -34,6 +35,17 @@ func (u user) Update(user *models.User) error {
 
 func (u user) Delete(user *models.User) error {
 	return u.delete(user)
+}
+
+func (user) List(nextId, limit int) (users []models.User, err error) {
+	query := infra.PostgreSql.Model(models.User{})
+
+	if nextId > 0 {
+		query = query.Where("id < ?", nextId)
+	}
+
+	err = query.Order("id desc").Limit(limit).Find(&users).Error
+	return
 }
 
 func (user) GetByEmail(email string) (*models.User, error) {

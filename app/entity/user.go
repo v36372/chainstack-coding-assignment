@@ -15,6 +15,7 @@ type userEntity struct {
 
 type User interface {
 	Login(username, password string) (*models.User, error)
+	ListUsers(nextId, limit int) ([]models.User, error)
 }
 
 func NewUser(userRepo repo.IUser) User {
@@ -40,4 +41,14 @@ func (u userEntity) Login(email, password string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+func (u userEntity) ListUsers(nextId, limit int) (users []models.User, err error) {
+	users, err = u.userRepo.List(nextId, limit)
+	if err != nil {
+		err = uer.InternalError(err)
+		return
+	}
+
+	return
 }
