@@ -4,6 +4,7 @@ import (
 	"chainstack/models"
 	"chainstack/repo"
 	"chainstack/utilities/uer"
+	"errors"
 )
 
 type resourceEntity struct {
@@ -13,6 +14,7 @@ type resourceEntity struct {
 type Resource interface {
 	GetByUserId(userId, nextId, limit int) ([]models.Resource, error)
 	Create(content string, createdBy int) error
+	Delete(id, deleteBy int, isDeletorAdmin bool) error
 }
 
 func NewResource(resourceRepo repo.IResource) Resource {
@@ -27,6 +29,32 @@ func (r resourceEntity) Create(content string, createdBy int) error {
 		CreatedBy: createdBy,
 	}
 	err := r.resourceRepo.Create(resource)
+	if err != nil {
+		err = uer.InternalError(err)
+		return err
+	}
+
+	return err
+}
+
+func (r resourceEntity) Delete(id, deletedBy int, isDeletorAdmin bool) error {
+	resource, err := r.resourceRepo.GetById(id)
+	if err != nil {
+		err = uer.InternalError(err)
+		return err
+	}
+
+	if resource == nil {
+		err = uer.NotFoundError(errors.New("Resource not found"))
+		return err
+	}
+
+	if resource.CreatedBy != deletedBy && isDeletorAdmin == false {
+		err = uer.ForbiddenError(errors.New("You can not touch this"))
+		return err
+	}
+
+	err = r.resourceRepo.Delete(resource)
 	if err != nil {
 		err = uer.InternalError(err)
 		return err

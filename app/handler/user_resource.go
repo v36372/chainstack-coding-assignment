@@ -7,6 +7,7 @@ import (
 	"chainstack/app/view"
 	"chainstack/middleware"
 	"chainstack/utilities/uer"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -95,5 +96,24 @@ func (h userResourceHandler) CreateResource(c *gin.Context) {
 }
 
 func (h userResourceHandler) DeleteResource(c *gin.Context) {
+	currentUser := middleware.Auth.GetCurrentUser(c)
+	if currentUser == nil {
+		uer.HandleUnauthorized(c)
+		return
+	}
+
+	resourceId := params.GetResourceUIDParam(c)
+	if resourceId == 0 {
+		err := uer.NotFoundError(errors.New("Resource not found"))
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	err := h.resource.Delete(resourceId, currentUser.Id, currentUser.IsAdmin)
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
 	c.Status(200)
 }
