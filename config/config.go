@@ -12,14 +12,20 @@ var (
 )
 
 type Config struct {
-	App        App
-	PostgreSQL PostgreSQL
+	App         App
+	PostgreSQL  PostgreSQL
+	CookieToken CookieToken
 }
 
 type App struct {
 	Host  string
 	Port  int
 	Debug bool
+}
+
+type CookieToken struct {
+	HashKey  string
+	BlockKey string
 }
 
 type PostgreSQL struct {

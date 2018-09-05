@@ -3,6 +3,7 @@ package handler
 import (
 	"chainstack/app/entity"
 	"chainstack/config"
+	"chainstack/middleware"
 	"chainstack/repo"
 
 	"github.com/gin-gonic/gin"
@@ -21,9 +22,17 @@ func InitEngine(conf *config.Config) *gin.Engine {
 		r.Use(gin.Logger())
 	}
 
+	// ----------------------   INIT AUTHENTICATE MIDDLEWARE
+	secCookie := middleware.NewSetCookie(conf.CookieToken.BlockKey, conf.CookieToken.HashKey)
+	authMiddleware := middleware.NewAuthMiddleware(secCookie, middleware.Auth.GetLoggedInUser)
+	middleware.InitAuth(authMiddleware.GetCurrentUser)
+
+	r.Use(authMiddleware.Interception())
+
 	// ----------------------   INIT HANDLER
 	userHandler := userHandler{
-		user: entity.NewUser(repo.User),
+		user:      entity.NewUser(repo.User),
+		secCookie: secCookie,
 	}
 
 	// ----------------------   INIT ROUTE

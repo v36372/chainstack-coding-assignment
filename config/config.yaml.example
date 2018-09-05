@@ -14,3 +14,8 @@ postgresql:
   debug       : true
   maxIdleConns: 10
   maxOpenConns: 100
+
+cookieToken:
+  hashKey: "g6oVuERmIa6N3sw2yGuhjYg3JiXrkd5OFbp0ptDKOMTPQw8U5gkcEr4cpZDbSBT3"
+  blockKey: "w2yGuhjYg3JiXrkd"
+
