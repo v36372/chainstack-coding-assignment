@@ -25,7 +25,7 @@ type IUser interface {
 	Create(*models.User) error
 	Update(*models.User) error
 	Delete(*models.User) error
-	DeleteUserAndQuota(userId int) error
+	DeleteUserAndResourceAndQuota(userId int) error
 }
 
 func (u user) Create(user *models.User) error {
@@ -40,7 +40,7 @@ func (u user) Delete(user *models.User) error {
 	return u.delete(user)
 }
 
-func (u user) DeleteUserAndQuota(userId int) error {
+func (u user) DeleteUserAndResourceAndQuota(userId int) error {
 	var quota models.UserQuota
 	tx := infra.PostgreSql.Begin()
 
@@ -51,6 +51,12 @@ func (u user) DeleteUserAndQuota(userId int) error {
 	}
 
 	err = tx.Where("id = ?", userId).Delete(models.User{}).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Where("created_by = ?", userId).Delete(models.Resource{}).Error
 	if err != nil {
 		tx.Rollback()
 		return err
