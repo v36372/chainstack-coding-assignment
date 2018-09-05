@@ -7,7 +7,7 @@ import (
 func HandleErrorGin(e error, c *gin.Context) {
 	err := ToStatusError(e)
 	c.JSON(err.Status, gin.H{
-		"msg": err.Message,
+		"msg": err.Error(),
 	})
 	c.Abort()
 }

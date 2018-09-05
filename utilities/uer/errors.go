@@ -19,7 +19,7 @@ type StatusError struct {
 
 // Error returns the underling error string - it should not be shown in production
 func (e *StatusError) Error() string {
-	return fmt.Sprintf("Status %d at %s : %s", e.Status, e.FileLine(), e.Err)
+	return fmt.Sprintf("%s", e.Err)
 }
 
 // String returns a string represenation of this error, useful for debugging
