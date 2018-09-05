@@ -9,14 +9,14 @@ import (
 )
 
 type UserCreateForm struct {
-	Email    string `form:"email" json:"email" valid:"email"`
+	Email    string `form:"email" json:"email" valid:"email,required"`
 	Password string `form:"password" json:"password" valid:"required"`
 	Quota    int    `form:"quota" json:"quota"`
 	IsAdmin  bool   `form:"isAdmin" json:"isAdmin"`
 }
 
 type UserLogin struct {
-	Email    string `form:"email" json:"email" valid:"email"`
+	Email    string `form:"email" json:"email" valid:"email,required"`
 	Password string `form:"password" json:"password" valid:"required"`
 }
 
