@@ -1,0 +1,7 @@
+development:
+  driver: postgres
+  open: user=nttin password=nttin dbname=chainstack sslmode=disable
+
+heroku:
+  driver: postgres
+  open: postgres://username:password@host:port/dbname
