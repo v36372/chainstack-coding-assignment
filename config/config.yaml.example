@@ -3,3 +3,14 @@
 app:
   host: 0.0.0.0
   port: 5002
+  debug: true
+
+postgresql:
+  host        : 127.0.0.1
+  port        : 5432
+  username    : justin
+  db          : dienlanhphongvan
+  password    : justin
+  debug       : true
+  maxIdleConns: 10
+  maxOpenConns: 100

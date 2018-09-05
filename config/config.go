@@ -12,12 +12,25 @@ var (
 )
 
 type Config struct {
-	App App
+	App        App
+	PostgreSQL PostgreSQL
 }
 
 type App struct {
-	Host string
-	Port int
+	Host  string
+	Port  int
+	Debug bool
+}
+
+type PostgreSQL struct {
+	Username     string
+	Password     string
+	Host         string
+	Port         int
+	Db           string
+	Debug        bool
+	MaxIdleConns int
+	MaxOpenConns int
 }
 
 func init() {
@@ -44,4 +57,9 @@ func Load() {
 func Get() Config {
 	load()
 	return conf
+}
+
+func GetPostgreSQL() PostgreSQL { return conf.GetPostgreSQL() }
+func (c Config) GetPostgreSQL() PostgreSQL {
+	return c.PostgreSQL
 }
