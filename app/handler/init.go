@@ -60,7 +60,7 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	resourceGroup.Use(authMiddleware.Interception())
 	{
 		DELETE(resourceGroup, "/:uid", userResourceHandler.DeleteResource)
-		POST(resourceGroup, "/resources", userResourceHandler.CreateResource)
+		POST(resourceGroup, "", userResourceHandler.CreateResource)
 	}
 
 	return r
