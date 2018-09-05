@@ -6,11 +6,13 @@ import (
 	"chainstack/utilities/uer"
 	"errors"
 	"math/rand"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var letterBytes = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var defaultSaltLength = 15
 
 type userEntity struct {
 	userRepo repo.IUser
@@ -30,10 +32,10 @@ func NewUser(userRepo repo.IUser) User {
 }
 
 func RandStringBytesRmndr(n int) string {
+	rand.Seed(time.Now().UTC().UnixNano())
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
-
 	}
 	return string(b)
 }
@@ -49,7 +51,7 @@ func (u userEntity) Delete(userId int, currentUserId int) error {
 		return uer.NotFoundError(errors.New("User not found"))
 	}
 
-	err = u.userRepo.DeleteUserAndQuota(userId)
+	err = u.userRepo.DeleteUserAndResourceAndQuota(userId)
 	if err != nil {
 		return uer.InternalError(err)
 	}
@@ -58,7 +60,7 @@ func (u userEntity) Delete(userId int, currentUserId int) error {
 }
 
 func (u userEntity) Create(user *models.User, quota *models.UserQuota, currentUserId int) error {
-	randomSalt := RandStringBytesRmndr(15)
+	randomSalt := RandStringBytesRmndr(defaultSaltLength)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(randomSalt+user.Password), bcrypt.DefaultCost)
 	if err != nil {
