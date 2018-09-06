@@ -5,6 +5,7 @@ import (
 	"chainstack/repo"
 	"chainstack/utilities/uer"
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -21,7 +22,7 @@ type userEntity struct {
 type User interface {
 	Login(username, password string) (*models.User, error)
 	ListUsers(nextId, limit int) ([]models.User, error)
-	Create(*models.User, *models.UserQuota, int) error
+	Create(*models.User, int) (*models.User, error)
 	Delete(userId int, currentUserId int) error
 }
 
@@ -59,24 +60,34 @@ func (u userEntity) Delete(userId int, currentUserId int) error {
 	return nil
 }
 
-func (u userEntity) Create(user *models.User, quota *models.UserQuota, currentUserId int) error {
+func (u userEntity) Create(user *models.User, currentUserId int) (*models.User, error) {
+	userFromDB, err := u.userRepo.GetByEmail(user.Email)
+	if err != nil {
+		return nil, uer.InternalError(err)
+	}
+
+	if userFromDB != nil {
+		err = uer.BadRequestError(errors.New(fmt.Sprintf("User with email %s is already exist", user.Email)))
+		return nil, err
+	}
+
 	randomSalt := RandStringBytesRmndr(defaultSaltLength)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(randomSalt+user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return uer.InternalError(err)
+		return nil, uer.InternalError(err)
 	}
 
 	user.Salt = randomSalt
 	user.Password = string(hash)
 	user.CreatedBy = currentUserId
 
-	err = u.userRepo.CreateUserAndQuota(user, quota)
+	user, err = u.userRepo.Create(user)
 	if err != nil {
-		return uer.InternalError(err)
+		return nil, uer.InternalError(err)
 	}
 
-	return nil
+	return user, nil
 }
 
 func (u userEntity) Login(email, password string) (*models.User, error) {
