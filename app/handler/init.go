@@ -43,12 +43,12 @@ func InitEngine(conf *config.Config) *gin.Engine {
 
 	// ----------------------   INIT ROUTE
 
-	indexGroup := r.Group("/")
+	indexGroup := r.Group("/:version")
 	{
 		POST(indexGroup, "/login", userHandler.Login)
 	}
 
-	userGroup := r.Group("/users")
+	userGroup := indexGroup.Group("/users")
 	userGroup.Use(authMiddleware.RequireLogin())
 	userGroup.Use(authMiddleware.Interception())
 	{
@@ -64,7 +64,7 @@ func InitEngine(conf *config.Config) *gin.Engine {
 		PUT(adminGroup, "/:id/quota", userQuotaHandler.UpdateQuota)
 	}
 
-	resourceGroup := r.Group("/resources")
+	resourceGroup := indexGroup.Group("/resources")
 	resourceGroup.Use(authMiddleware.RequireLogin())
 	resourceGroup.Use(authMiddleware.Interception())
 	{
