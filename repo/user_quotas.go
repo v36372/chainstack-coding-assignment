@@ -20,13 +20,14 @@ func init() {
 type IUserQuota interface {
 	GetByUserId(userId int) (*models.UserQuota, error)
 	GetByUserIds(userIds []int) ([]models.UserQuota, error)
-	Create(*models.UserQuota) error
+	Create(*models.UserQuota) (*models.UserQuota, error)
 	Delete(*models.UserQuota) error
 	Update(*models.UserQuota) error
 }
 
-func (u userQuota) Create(quota *models.UserQuota) error {
-	return u.create(quota)
+func (u userQuota) Create(quota *models.UserQuota) (*models.UserQuota, error) {
+	value, err := u.create(quota)
+	return value.(*models.UserQuota), err
 }
 
 func (u userQuota) Delete(quota *models.UserQuota) error {

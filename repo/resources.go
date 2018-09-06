@@ -20,7 +20,7 @@ func init() {
 type IResource interface {
 	GetByUserId(userId, nextId, limit int) ([]models.Resource, error)
 	GetById(id int) (*models.Resource, error)
-	Create(*models.Resource) error
+	Create(*models.Resource) (*models.Resource, error)
 	Delete(*models.Resource) error
 }
 
@@ -36,8 +36,9 @@ func (r resource) GetById(id int) (*models.Resource, error) {
 	return &resource, err
 }
 
-func (r resource) Create(resource *models.Resource) error {
-	return r.create(resource)
+func (r resource) Create(resource *models.Resource) (*models.Resource, error) {
+	value, err := r.create(resource)
+	return value.(*models.Resource), err
 }
 
 func (r resource) Delete(resource *models.Resource) error {

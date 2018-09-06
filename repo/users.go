@@ -21,15 +21,15 @@ type IUser interface {
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId int) (*models.User, error)
 	List(nextId, limit int) ([]models.User, error)
-	CreateUserAndQuota(*models.User, *models.UserQuota) error
-	Create(*models.User) error
+	Create(*models.User) (*models.User, error)
 	Update(*models.User) error
 	Delete(*models.User) error
 	DeleteUserAndResourceAndQuota(userId int) error
 }
 
-func (u user) Create(user *models.User) error {
-	return u.create(user)
+func (u user) Create(user *models.User) (*models.User, error) {
+	value, err := u.create(user)
+	return value.(*models.User), err
 }
 
 func (u user) Update(user *models.User) error {
@@ -82,33 +82,6 @@ func (u user) DeleteUserAndResourceAndQuota(userId int) error {
 	if err != nil {
 		tx.Rollback()
 		return err
-	}
-
-	return nil
-}
-
-func (u user) CreateUserAndQuota(user *models.User, quota *models.UserQuota) (err error) {
-	if quota == nil {
-		return u.create(user)
-	}
-	tx := infra.PostgreSql.Begin()
-	err = tx.Create(user).Error
-	if err != nil {
-		tx.Rollback()
-		return
-	}
-
-	quota.UserId = user.Id
-	err = tx.Create(quota).Error
-	if err != nil {
-		tx.Rollback()
-		return
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
-		tx.Rollback()
-		return
 	}
 
 	return nil

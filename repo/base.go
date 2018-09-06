@@ -7,11 +7,12 @@ import (
 
 type base struct{}
 
-func (base) create(value interface{}) error {
+func (base) create(value interface{}) (interface{}, error) {
 	if value != nil {
-		return infra.PostgreSql.Create(value).Error
+		err := infra.PostgreSql.Create(value).Error
+		return value, err
 	}
-	return errors.New("Create failed. Value is nil")
+	return nil, errors.New("Create failed. Value is nil")
 }
 
 func (base) save(value interface{}) error {
