@@ -7,7 +7,6 @@ import (
 	"chainstack/app/view"
 	"chainstack/middleware"
 	"chainstack/utilities/uer"
-	"errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,9 +31,10 @@ func (h userQuotaHandler) UpdateQuota(c *gin.Context) {
 
 	userId := params.GetUserIdUrlParam(c)
 	if userId == 0 {
-		err := uer.NotFoundError(errors.New("User not found"))
-		uer.HandleErrorGin(err, c)
-		return
+		// err := uer.NotFoundError(errors.New("User not found"))
+		// uer.HandleErrorGin(err, c)
+		// return
+		userId = currentUser.Id
 	}
 
 	user, userQuota, err := h.quota.UpdateByUserId(userId, updateQuotaForm.Quota, currentUser.Id)
