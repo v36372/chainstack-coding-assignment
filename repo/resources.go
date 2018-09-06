@@ -3,7 +3,6 @@ package repo
 import (
 	"chainstack/infra"
 	"chainstack/models"
-	"chainstack/utilities/uer"
 	"errors"
 	"time"
 
@@ -69,7 +68,7 @@ func (r resource) Create(resource *models.Resource) (*models.Resource, error) {
 	}
 
 	if userQuota.CurrentQuotaLeft <= 0 {
-		err = uer.BadRequestError(errors.New("Cant create new resource, you ran out of quota."))
+		err = errors.New("Cant create new resource, you ran out of quota.")
 		return nil, err
 	}
 
@@ -99,7 +98,37 @@ func (r resource) Create(resource *models.Resource) (*models.Resource, error) {
 }
 
 func (r resource) Delete(resource *models.Resource) error {
-	return r.delete(resource)
+	var userQuota models.UserQuota
+	tx := infra.PostgreSql.Begin()
+
+	err := tx.Delete(resource).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Model(models.UserQuota{}).Where("user_id = ?", resource.CreatedBy).Find(&userQuota).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if userQuota.CurrentQuotaLeft < userQuota.Quota {
+		userQuota.CurrentQuotaLeft += 1
+		err = tx.Save(&userQuota).Error
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
 func (r resource) GetByUserId(userId, nextId, limit int) (resources []models.Resource, err error) {
