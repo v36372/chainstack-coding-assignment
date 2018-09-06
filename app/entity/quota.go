@@ -17,9 +17,10 @@ type Quota interface {
 	UpdateByUserId(userId, quota int, updatedBy int) (*models.User, *models.UserQuota, error)
 }
 
-func NewQuota(quotaRepo repo.IUserQuota) Quota {
+func NewQuota(quotaRepo repo.IUserQuota, userRepo repo.IUser) Quota {
 	return &quotaEntity{
 		quotaRepo: quotaRepo,
+		userRepo:  userRepo,
 	}
 }
 

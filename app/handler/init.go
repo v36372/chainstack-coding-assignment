@@ -38,7 +38,7 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	}
 
 	userQuotaHandler := userQuotaHandler{
-		quota: entity.NewQuota(repo.UserQuota),
+		quota: entity.NewQuota(repo.UserQuota, repo.User),
 	}
 
 	// ----------------------   INIT ROUTE
