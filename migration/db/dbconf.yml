@@ -1,7 +1,0 @@
-development:
-  driver: postgres
-  open: user=justin password=justin dbname=chainstack sslmode=disable
-
-heroku:
-  driver: postgres
-  open: postgres://rkdkrwkfvwuqoa:219669d7b990f10dd43d91bcffb00411013d2f96be5af94a586521f90b02be53@ec2-54-243-63-13.compute-1.amazonaws.com:5432/d5e4g5ipu4r8oh
