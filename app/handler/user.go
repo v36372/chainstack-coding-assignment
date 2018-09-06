@@ -41,9 +41,13 @@ func (h userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"msg": "Login successfully",
-	})
+	userViews, err := view.NewUsers([]models.User{*user})
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	view.ResponseOK(c, userViews[0])
 }
 
 func (h userHandler) DeleteUser(c *gin.Context) {
