@@ -26,6 +26,7 @@ type GetCurrentUser func(c *gin.Context) (user interface{}, exists bool)
 type authMiddlewareInterface interface {
 	RequireLogin() gin.HandlerFunc
 	Interception() gin.HandlerFunc
+	RequireAdmin() gin.HandlerFunc
 	GetCurrentUser(c *gin.Context) (user interface{}, exists bool)
 }
 type authMiddleware struct {
@@ -82,6 +83,28 @@ func (a *authMiddleware) RequireLogin() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(401, gin.H{
 				"msg": "You need to login to see this.",
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+func (a *authMiddleware) RequireAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, exist := a.GetCurrentUser(c)
+		if !exist {
+			c.JSON(401, gin.H{
+				"msg": "You need to login to see this.",
+			})
+			c.Abort()
+			return
+		}
+
+		if !user.(*models.User).IsAdmin {
+			c.JSON(403, gin.H{
+				"msg": "You don't have enough privilege to do this",
 			})
 			c.Abort()
 			return
