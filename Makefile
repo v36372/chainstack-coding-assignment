@@ -30,3 +30,42 @@ build:
 	@echo "   2. build: $(MAIN_FILE)" \
 		&& go build -o $(BIN_DIR)/$(NAME) $(MAIN_FILE) \
 		&& echo "   ==> ok: SERVICE=$(BIN_DIR)/$(NAME)"
+
+clean:
+	@echo "STEP: CLEAN"
+	@echo "   1. remove dir: $(BIN_DIR)"
+	@rm -rf bin \
+	 	&& echo "   ==> ok"
+
+restart: 
+ifneq ("$(wildcard $(PID_API_FILE))","") 
+	@$(MAKE) -f $(THIS_FILE) stop
+	@$(MAKE) -f $(THIS_FILE) start
+else
+	@$(MAKE) -f $(THIS_FILE) start
+endif
+
+start:
+	@echo "Starting..."
+	@mkdir -p $(LOG_DIR)
+ifneq ("$(wildcard $(PID_API_FILE))","") 
+	@echo "[FAIL] A processing is running. Stop it first or restart"
+else
+	@pid= nohup bin/$(NAME) >> $(LOG_FILE) 2>&1 & echo "$$!" > $(PID_API_FILE)
+	@echo "Done!"
+endif
+
+stop:
+	@echo "Stopping..."
+	@kill -USR2 $(PID_API)
+	@rm $(PID_API_FILE)
+	@echo "Done!"
+
+status:
+ifeq ("$(wildcard $(PID_API_FILE))","") 
+	@echo "There is no running process"
+else
+	@echo "Service is running at PID=$(PID_API)"
+	@echo "---"
+	@ps aux | grep $(PID_API)
+endif
