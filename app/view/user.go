@@ -8,13 +8,14 @@ import (
 )
 
 type User struct {
-	Id          int       `json:"id"`
-	Email       string    `json:"email"`
-	IsAdmin     bool      `json:"isAdmin"`
-	Quota       int       `json:"quota"`
-	QuotaStatus string    `json:"quotaStatus,omitempty"`
-	CreatedBy   int       `json:"createdBy"`
-	CreatedAt   time.Time `json:"createdAt"`
+	Id               int       `json:"id"`
+	Email            string    `json:"email"`
+	IsAdmin          bool      `json:"isAdmin"`
+	Quota            *int      `json:"quota,omitempty"`
+	QuotaStatus      string    `json:"quotaStatus,omitempty"`
+	CurrentQuotaLeft *int      `json:"currentQuotaLeft,omitempty"`
+	CreatedBy        int       `json:"createdBy"`
+	CreatedAt        time.Time `json:"createdAt"`
 }
 
 func NewUserWithQuota(user *models.User, userQuota *models.UserQuota) User {
@@ -27,16 +28,21 @@ func NewUserWithQuota(user *models.User, userQuota *models.UserQuota) User {
 	}
 
 	if userQuota == nil {
-		userView.Quota = -1
+		userView.Quota = nil
+		userView.CurrentQuotaLeft = nil
 		userView.QuotaStatus = "Infinite"
 		return userView
 	}
 
-	userView.Quota = userQuota.Quota
+	var quota, currentQuotaLeft int
+	quota = userQuota.Quota
+	currentQuotaLeft = userQuota.CurrentQuotaLeft
+	userView.Quota = &quota
+	userView.CurrentQuotaLeft = &currentQuotaLeft
 	return userView
 }
 
-func NewUser(user models.User, quotaMap map[int]int) User {
+func NewUser(user models.User, quotaMap map[int]models.UserQuota) User {
 	userView := User{
 		Id:        user.Id,
 		Email:     user.Email,
@@ -47,12 +53,17 @@ func NewUser(user models.User, quotaMap map[int]int) User {
 
 	userQuota, exist := quotaMap[user.Id]
 	if !exist {
-		userView.Quota = -1
+		userView.Quota = nil
+		userView.CurrentQuotaLeft = nil
 		userView.QuotaStatus = "Infinite"
 		return userView
 	}
 
-	userView.Quota = userQuota
+	var quota, currentQuotaLeft int
+	quota = userQuota.Quota
+	currentQuotaLeft = userQuota.CurrentQuotaLeft
+	userView.Quota = &quota
+	userView.CurrentQuotaLeft = &currentQuotaLeft
 	return userView
 }
 
@@ -68,9 +79,9 @@ func NewUsers(users []models.User) (userViews []User, err error) {
 		return
 	}
 
-	quotaMap := map[int]int{}
+	quotaMap := map[int]models.UserQuota{}
 	for _, userQuota := range userQuotas {
-		quotaMap[userQuota.UserId] = userQuota.Quota
+		quotaMap[userQuota.UserId] = userQuota
 	}
 
 	userViews = make([]User, len(users))
