@@ -17,6 +17,25 @@ type User struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
+func NewUserWithQuota(user *models.User, userQuota *models.UserQuota) User {
+	userView := User{
+		Id:        user.Id,
+		Email:     user.Email,
+		IsAdmin:   user.IsAdmin,
+		CreatedBy: user.CreatedBy,
+		CreatedAt: user.CreatedAt,
+	}
+
+	if userQuota == nil {
+		userView.Quota = -1
+		userView.QuotaStatus = "Infinite"
+		return userView
+	}
+
+	userView.Quota = userQuota.Quota
+	return userView
+}
+
 func NewUser(user models.User, quotaMap map[int]int) User {
 	userView := User{
 		Id:        user.Id,
