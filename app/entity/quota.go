@@ -43,6 +43,7 @@ func (q quotaEntity) UpdateByUserId(userId, quota int, updatedBy int) (user *mod
 
 	if userQuota != nil {
 		userQuota.Quota = quota
+		userQuota.CurrentQuotaLeft = quota
 		userQuota.UpdatedAt = time.Now()
 		userQuota.UpdatedBy = updatedBy
 		err = q.quotaRepo.Update(userQuota)
@@ -54,18 +55,17 @@ func (q quotaEntity) UpdateByUserId(userId, quota int, updatedBy int) (user *mod
 		return
 	}
 
-	if quota > 0 {
-		userQuota = &models.UserQuota{
-			UserId:    userId,
-			Quota:     quota,
-			CreatedBy: updatedBy,
-		}
+	userQuota = &models.UserQuota{
+		UserId:           userId,
+		Quota:            quota,
+		CurrentQuotaLeft: quota,
+		CreatedBy:        updatedBy,
+	}
 
-		userQuota, err = q.quotaRepo.Create(userQuota)
-		if err != nil {
-			err = uer.InternalError(err)
-			return
-		}
+	userQuota, err = q.quotaRepo.Create(userQuota)
+	if err != nil {
+		err = uer.InternalError(err)
+		return
 	}
 
 	return
