@@ -8,6 +8,8 @@ type UserQuota struct {
 	Quota     int
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	UpdatedBy int
+	CreatedBy int
 }
 
 func (UserQuota) TableName() string {
