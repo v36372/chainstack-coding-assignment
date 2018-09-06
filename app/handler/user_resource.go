@@ -55,9 +55,7 @@ func (h userResourceHandler) ListResources(c *gin.Context) {
 	resourceViews := view.NewResources(resources)
 	if len(resources) == limit {
 		url := c.Request.RequestURI
-		if strings.Index(url, "/") == 0 {
-			url = url[1:]
-		}
+		url = url[2:]
 		version := c.Param("version")
 		// NextUrl
 		nextUrl := fmt.Sprintf("%s?%s=%d",
