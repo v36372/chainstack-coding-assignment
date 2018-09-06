@@ -1,4 +1,5 @@
 bin
 log
 config/config.yaml
+migration/db/dbconf.yaml
 *.log
