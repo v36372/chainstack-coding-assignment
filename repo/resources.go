@@ -3,6 +3,9 @@ package repo
 import (
 	"chainstack/infra"
 	"chainstack/models"
+	"chainstack/utilities/uer"
+	"errors"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -36,9 +39,63 @@ func (r resource) GetById(id int) (*models.Resource, error) {
 	return &resource, err
 }
 
+func (resource) createWithTx(resource *models.Resource, tx *gorm.DB) (*models.Resource, error) {
+	err := tx.Create(resource).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return resource, nil
+}
+
 func (r resource) Create(resource *models.Resource) (*models.Resource, error) {
-	value, err := r.create(resource)
-	return value.(*models.Resource), err
+	var userQuota models.UserQuota
+	tx := infra.PostgreSql.Begin()
+
+	err := tx.Model(models.UserQuota{}).Where("user_id = ?", resource.CreatedBy).Find(&userQuota).Error
+	if err == gorm.ErrRecordNotFound {
+		return r.createWithTx(resource, tx)
+	}
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if userQuota.CurrentQuotaLeft <= 0 {
+		err = uer.BadRequestError(errors.New("Cant create new resource, you ran out of quota."))
+		return nil, err
+	}
+
+	err = tx.Create(resource).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	userQuota.CurrentQuotaLeft -= 1
+	userQuota.UpdatedAt = time.Now()
+	userQuota.UpdatedBy = resource.CreatedBy
+	err = tx.Save(&userQuota).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return resource, nil
+
 }
 
 func (r resource) Delete(resource *models.Resource) error {
