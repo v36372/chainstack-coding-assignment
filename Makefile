@@ -1,7 +1,13 @@
 NAME         =chainstack
 MAIN_PATH    =server/
 MAIN_FILE    =server/main.go
+GIT_TAG      =v$(shell date +"%Y-%m-%d-%H-%M")
 BIN_DIR      =bin
+LOG_DIR      =log
+LOG_FILE     =$(LOG_DIR)/access.log
+PID_API_FILE =$(BIN_DIR)/shipdriver.pid
+PID_API      =$(shell cat $(PID_API_FILE))
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
 default: 
 	@echo "USAGE: make <command>"
