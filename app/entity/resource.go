@@ -13,7 +13,7 @@ type resourceEntity struct {
 
 type Resource interface {
 	GetByUserId(userId, nextId, limit int) ([]models.Resource, error)
-	Create(content string, createdBy int) error
+	Create(content string, createdBy int) (*models.Resource, error)
 	Delete(id, deleteBy int, isDeletorAdmin bool) error
 }
 
@@ -23,18 +23,18 @@ func NewResource(resourceRepo repo.IResource) Resource {
 	}
 }
 
-func (r resourceEntity) Create(content string, createdBy int) error {
+func (r resourceEntity) Create(content string, createdBy int) (*models.Resource, error) {
 	resource := &models.Resource{
 		Content:   content,
 		CreatedBy: createdBy,
 	}
-	err := r.resourceRepo.Create(resource)
+	resource, err := r.resourceRepo.Create(resource)
 	if err != nil {
 		err = uer.InternalError(err)
-		return err
+		return nil, err
 	}
 
-	return err
+	return resource, err
 }
 
 func (r resourceEntity) Delete(id, deletedBy int, isDeletorAdmin bool) error {
