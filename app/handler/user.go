@@ -6,6 +6,7 @@ import (
 	"chainstack/app/params"
 	"chainstack/app/view"
 	"chainstack/middleware"
+	"chainstack/models"
 	"chainstack/utilities/uer"
 	"errors"
 	"fmt"
@@ -40,18 +41,15 @@ func (h userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.Status(200)
+	c.JSON(200, gin.H{
+		"msg": "Login successfully",
+	})
 }
 
 func (h userHandler) DeleteUser(c *gin.Context) {
 	currentUser := middleware.Auth.GetCurrentUser(c)
 	if currentUser == nil {
 		uer.HandleUnauthorized(c)
-		return
-	}
-
-	if currentUser.IsAdmin == false {
-		uer.HandlePermissionDenied(c)
 		return
 	}
 
@@ -74,18 +72,15 @@ func (h userHandler) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.Status(200)
+	c.JSON(200, gin.H{
+		"msg": "User and its resources are deleted.",
+	})
 }
 
 func (h userHandler) CreateUser(c *gin.Context) {
 	currentUser := middleware.Auth.GetCurrentUser(c)
 	if currentUser == nil {
 		uer.HandleUnauthorized(c)
-		return
-	}
-
-	if currentUser.IsAdmin == false {
-		uer.HandlePermissionDenied(c)
 		return
 	}
 
@@ -96,31 +91,32 @@ func (h userHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, userQuota := userForm.ToDBModel()
+	user := userForm.ToDBModel()
 	if user == nil {
 		err = uer.BadRequestError(errors.New("Invalid input"))
 		uer.HandleErrorGin(err, c)
 		return
 	}
 
-	err = h.user.Create(user, userQuota, currentUser.Id)
+	user, err = h.user.Create(user, currentUser.Id)
 	if err != nil {
 		uer.HandleErrorGin(err, c)
 		return
 	}
 
-	c.Status(200)
+	userViews, err := view.NewUsers([]models.User{*user})
+	if err != nil {
+		uer.HandleErrorGin(err, c)
+		return
+	}
+
+	view.ResponseOK(c, userViews[0])
 }
 
 func (h userHandler) ListUsers(c *gin.Context) {
 	currentUser := middleware.Auth.GetCurrentUser(c)
 	if currentUser == nil {
 		uer.HandleUnauthorized(c)
-		return
-	}
-
-	if currentUser.IsAdmin == false {
-		uer.HandlePermissionDenied(c)
 		return
 	}
 
