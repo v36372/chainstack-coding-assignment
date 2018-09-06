@@ -15,8 +15,7 @@ import (
 )
 
 type userResourceHandler struct {
-	resource  entity.Resource
-	secCookie *middleware.SecCookie
+	resource entity.Resource
 }
 
 func getPureRequestURI(URI string, prefix string) string {
@@ -86,13 +85,14 @@ func (h userResourceHandler) CreateResource(c *gin.Context) {
 		return
 	}
 
-	err = h.resource.Create(resourceForm.Content, currentUser.Id)
+	resource, err := h.resource.Create(resourceForm.Content, currentUser.Id)
 	if err != nil {
 		uer.HandleErrorGin(err, c)
 		return
 	}
 
-	c.Status(200)
+	resourceView := view.NewResource(*resource)
+	view.ResponseOK(c, resourceView)
 }
 
 func (h userResourceHandler) DeleteResource(c *gin.Context) {
@@ -115,5 +115,7 @@ func (h userResourceHandler) DeleteResource(c *gin.Context) {
 		return
 	}
 
-	c.Status(200)
+	c.JSON(200, gin.H{
+		"msg": "Resosurce is successfully deleted",
+	})
 }
