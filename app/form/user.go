@@ -11,7 +11,6 @@ import (
 type UserCreateForm struct {
 	Email    string `form:"email" json:"email" valid:"email,required"`
 	Password string `form:"password" json:"password" valid:"required"`
-	Quota    int    `form:"quota" json:"quota"`
 	IsAdmin  bool   `form:"isAdmin" json:"isAdmin"`
 }
 
@@ -46,17 +45,11 @@ func (userForm *UserCreateForm) FromCtx(c *gin.Context) error {
 	return nil
 }
 
-func (userForm *UserCreateForm) ToDBModel() (user *models.User, quota *models.UserQuota) {
+func (userForm *UserCreateForm) ToDBModel() (user *models.User) {
 	user = &models.User{
 		Email:    userForm.Email,
 		Password: userForm.Password,
 		IsAdmin:  userForm.IsAdmin,
-	}
-
-	if userForm.Quota > 0 {
-		quota = &models.UserQuota{
-			Quota: userForm.Quota,
-		}
 	}
 
 	return
