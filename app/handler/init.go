@@ -34,8 +34,11 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	}
 
 	userResourceHandler := userResourceHandler{
-		resource:  entity.NewResource(repo.Resource),
-		secCookie: secCookie,
+		resource: entity.NewResource(repo.Resource),
+	}
+
+	userQuotaHandler := userQuotaHandler{
+		quota: entity.NewQuota(repo.UserQuota),
 	}
 
 	// ----------------------   INIT ROUTE
@@ -50,9 +53,15 @@ func InitEngine(conf *config.Config) *gin.Engine {
 	userGroup.Use(authMiddleware.Interception())
 	{
 		GET(userGroup, "/:id/resources", userResourceHandler.ListResources)
-		GET(userGroup, "", userHandler.ListUsers)
-		POST(userGroup, "", userHandler.CreateUser)
-		DELETE(userGroup, "/:id", userHandler.DeleteUser)
+	}
+
+	adminGroup := userGroup
+	adminGroup.Use(authMiddleware.RequireAdmin())
+	{
+		GET(adminGroup, "", userHandler.ListUsers)
+		POST(adminGroup, "", userHandler.CreateUser)
+		DELETE(adminGroup, "/:id", userHandler.DeleteUser)
+		PUT(adminGroup, "/:id/quota", userQuotaHandler.UpdateQuota)
 	}
 
 	resourceGroup := r.Group("/resources")
