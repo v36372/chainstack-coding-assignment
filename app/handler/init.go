@@ -43,7 +43,7 @@ func InitEngine(conf *config.Config) *gin.Engine {
 
 	// ----------------------   INIT ROUTE
 
-	indexGroup := r.Group("/:version")
+	indexGroup := r.Group("/api/:version")
 	{
 		POST(indexGroup, "/login", userHandler.Login)
 	}
