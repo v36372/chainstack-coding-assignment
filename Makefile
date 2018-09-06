@@ -24,6 +24,18 @@ deploy: backup build
 run: 
 	$(BIN_DIR)/$(NAME)
 
+backup:
+	@echo "STEP: BACKUP"
+	@echo "   1. backup: binary file"
+	@[ ! -f $(BIN_DIR)/$(NAME) ] && \
+		 echo "   => skip: SERVICE=bin/$(NAME) DOES NOT EXIST" || ( \
+		 cp $(BIN_DIR)/$(NAME) $(BIN_DIR)/$(NAME)_$(GIT_TAG) && \
+	  	 echo "   => ok: SERVICE=$(BIN_DIR)/$(NAME)_$(GIT_TAG)" )
+	@echo "   2. backup: git commit"
+	@git tag -f $(GIT_TAG) && \
+		echo  "   => ok: TAG=$(GIT_TAG)"
+
+
 build:
 	@echo "STEP: BUILD"
 	@echo "   1. create dir: $(BIN_DIR)" \
