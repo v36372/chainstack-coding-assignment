@@ -19,6 +19,8 @@ install:
 	@echo "Installing..."
 	@go install $(MAIN_FILE)
 
+deploy: backup build
+
 run: 
 	$(BIN_DIR)/$(NAME)
 
